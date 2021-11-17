@@ -45,8 +45,11 @@ void leerArchivo(termino*, int*, char*);
 void escrituraDiccionario(termino*, int);
 void leer();
 
-//
+// Julian
 void mostrarArbol(nodoA*);
+
+// Tobi
+void mostrarOcurrencias (nodoT*);
 
 
 /// FUNCIONES
@@ -385,7 +388,21 @@ void generarArbolBusqueda(nodoA** ABBDiccionario)
     }
 }
 
-//// tobi
+void mostrarArbol(nodoA* arbol)
+{
+    if (arbol)
+    {
+        printf("Palabra: %s\n", arbol->palabra);
+        printf("Frecuencia: %i\n", arbol->frecuencia);
+        mostrarOcurrencias(arbol->ocurrencias);
+        mostrarArbol(arbol->izq);
+        mostrarArbol(arbol->der);
+    }
+}
+
+// OPERACIONES DE USUARIO - Tobi
+
+// 1) Buscar todas las apariciones de un término en algún documento (operación or).
 
 void mostrarOcurrencias (nodoT* lista)
 {
@@ -398,23 +415,6 @@ void mostrarOcurrencias (nodoT* lista)
     }
 
     printf("=================\n");
-}
-
-
-// OPERACIONES DE USUARIO - Tobi
-
-// 1)
-
-void mostrarArbol(nodoA* arbol)
-{
-    if (arbol)
-    {
-        printf("Palabra: %s\n", arbol->palabra);
-        printf("Frecuencia: %i\n", arbol->frecuencia);
-        mostrarOcurrencias(arbol->ocurrencias);
-        mostrarArbol(arbol->izq);
-        mostrarArbol(arbol->der);
-    }
 }
 
 void buscarPalabraYMostrarOcurrencias (nodoA* arbol, char* palabra)
@@ -439,28 +439,180 @@ void buscarPalabraYMostrarOcurrencias (nodoA* arbol, char* palabra)
         printf("NO SE ENCONTRO LA PALABRA '%s'\n", palabra);
 }
 
-// 2)
-/*
-void buscarPalabraEnDosDocumentosYMostrarOcurrencias (nodoA* arbol, char* palabra)
+// 2) Buscar todas las apariciones de un término en un documento y otro (operacion and).
+
+int buscarIdDocEnOcurrencias (nodoT* ocurrencias, int idDoc)
+{
+    while (ocurrencias && ocurrencias->idDOC != idDoc)
+        ocurrencias = ocurrencias->sig;
+
+    return (ocurrencias != NULL);
+}
+
+void buscarPalabraEnDosDocumentosYMostrarOcurrencias (nodoA* arbol, char* palabra, int docA, int docB)
 {
     if (arbol)
     {
-        if ()
+        if (strcmpi(arbol->palabra, palabra) == 0)
         {
+            if (buscarIdDocEnOcurrencias(arbol->ocurrencias, docA) && buscarIdDocEnOcurrencias(arbol->ocurrencias, docB))
+            {
+                printf("Se encontro %s en:\n", palabra);
 
+                nodoT* aux = arbol->ocurrencias;
+
+                while (aux)
+                {
+                    printf("===================\n");
+
+                    if (aux->idDOC == docA || aux->idDOC == docB)
+                    {
+                        printf("ID DOC: %i\n", aux->idDOC);
+                        printf("POS: %i\n", aux->pos);
+                    }
+                }
+
+                printf("===================\n");
+            }
+            else
+                printf("La palabra no se encontro en ID DOC %i e ID DOC %i\n", docA, docB);
         }
         else
         {
-            if(strcmpi())
-                buscarPalabraEnDosDocumentosYMostrarOcurrencias();
+            if(strcmpi(arbol->palabra, palabra) < 0)
+                buscarPalabraEnDosDocumentosYMostrarOcurrencias(arbol->der, palabra, docA, docB);
             else
-                buscarPalabraEnDosDocumentosYMostrarOcurrencias();
+                buscarPalabraEnDosDocumentosYMostrarOcurrencias(arbol->izq, palabra, docA, docB);
         }
     }
     else
         printf("NO SE ENCONTRO LA PALABRA '%s'.\n", palabra);
 }
-*/
+
+// 3) Buscar la aparición de más de un término en el mismo documento.
+
+void mostrarOcurrenciasDeUnIdDoc (nodoT* ocurrencias, int idDoc)
+{
+    while (ocurrencias)
+    {
+        if (ocurrencias->idDOC == idDoc)
+        {
+            printf("===================\n");
+            printf("POS: %i\n", ocurrencias->pos);
+        }
+
+        ocurrencias = ocurrencias->sig;
+    }
+
+    printf("===================\n\n");
+}
+
+nodoT* retornarListaOcurrenciasDeUnaPalabra (nodoA* arbol, char* palabra)
+{
+    if (arbol)
+    {
+        if (strcmpi(arbol->palabra, palabra) == 0)
+            return arbol->ocurrencias;
+        else
+        {
+            if (strcmpi(arbol->palabra, palabra) > 0)
+                return retornarListaOcurrenciasDeUnaPalabra(arbol->izq, palabra);
+            else
+                return retornarListaOcurrenciasDeUnaPalabra(arbol->der, palabra);
+        }
+    }
+    else
+        return NULL;
+}
+
+int buscarPalabraEnArbol (nodoA* arbol, char* palabra)
+{
+    if (arbol)
+    {
+        if (strcmpi(arbol->palabra, palabra) == 0)
+            return 1;
+        else
+        {
+            if (strcmpi(arbol->palabra, palabra) < 0)
+                return buscarPalabraEnArbol(arbol->der, palabra);
+            else
+                return buscarPalabraEnArbol(arbol->izq, palabra);
+        }
+    }
+    else
+        return 0;
+}
+
+void buscarPalabrasEnMismoDoc (nodoA* arbol, char* palabraA, char* palabraB, int idDoc)
+{
+    if (buscarPalabraEnArbol(arbol, palabraA) && buscarPalabraEnArbol(arbol, palabraB)) // si ambas palabras existen
+    {
+        nodoT* ocurrPalabraA = retornarListaOcurrenciasDeUnaPalabra(arbol, palabraA);
+        nodoT* ocurrPalabraB = retornarListaOcurrenciasDeUnaPalabra(arbol, palabraB);
+
+        if (buscarIdDocEnOcurrencias(ocurrPalabraA, idDoc) && buscarIdDocEnOcurrencias(ocurrPalabraB, idDoc)) // si las palabras se encuentran en el mismo ID DOC
+        {
+            printf("Ambas palabras se encuentran en ID DOC %i.\n", idDoc);
+
+            printf("PALABRA: %s\n", palabraA);
+            mostrarOcurrenciasDeUnIdDoc(ocurrPalabraA, idDoc);
+            printf("PALABRA: %s\n", palabraB);
+            mostrarOcurrenciasDeUnIdDoc(ocurrPalabraB, idDoc);
+        }
+        else
+            printf("Ambas palabras se encuentran en distintos ID DOC.\n");
+    }
+    else
+        printf("Alguna de las dos palabras no fue encontrada.\n");
+}
+
+// 4) Buscar una frase completa (las palabras deben estar contiguas en alguno de los documentos).
+
+
+
+// 5)
+
+
+
+// 6)
+
+int Levenshtein(char *s1,char *s2)
+{
+    int t1,t2,i,j,*m,costo,res,ancho;
+
+// Calcula tamanios strings
+    t1=strlen(s1);
+    t2=strlen(s2);
+
+// Verifica que exista algo que comparar
+    if (t1==0) return(t2);
+    if (t2==0) return(t1);
+    ancho=t1+1;
+
+// Reserva matriz con malloc                     m[i,j] = m[j*ancho+i] !!
+    m=(int*)malloc(sizeof(int)*(t1+1)*(t2+1));
+    if (m==NULL) return(-1); // ERROR!!
+
+// Rellena primera fila y primera columna
+    for (i=0; i<=t1; i++) m[i]=i;
+    for (j=0; j<=t2; j++) m[j*ancho]=j;
+
+// Recorremos resto de la matriz llenando pesos
+    for (i=1; i<=t1; i++) for (j=1; j<=t2; j++)
+        {
+            if (s1[i-1]==s2[j-1]) costo=0;
+            else costo=1;
+            m[j*ancho+i]=Minimo(Minimo(m[j*ancho+i-1]+1,     // Eliminacion
+                                       m[(j-1)*ancho+i]+1),              // Insercion
+                                m[(j-1)*ancho+i-1]+costo);
+        }      // Sustitucion
+
+// Devolvemos esquina final de la matriz
+    res=m[t2*ancho+t1];
+    free(m);
+    return(res);
+}
+
 
 
 /// MAIN
