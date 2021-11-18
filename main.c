@@ -568,13 +568,205 @@ void buscarPalabrasEnMismoDoc (nodoA* arbol, char* palabraA, char* palabraB, int
 
 // 4) Buscar una frase completa (las palabras deben estar contiguas en alguno de los documentos).
 
+int retornarCantPalabras (char* frase)
+{
+    int i = 0, cant = 0;
 
+    while (frase[i] != '\0')
+    {
+        if (frase[i] == ' ')
+            cant++;
+        i++;
+    }
+    cant++;
 
-// 5)
+    return cant;
+}
 
+char** retornarArregloDeStrings (char* frase, int cantPalabras) // toma una frase en formato string y devuelve un arreglo de palabras
+{
+    int filas = cantPalabras, cols = 20; // cols = cant max de caracteres de términos (20)
 
+    char** matriz = (char**)malloc(sizeof(char)*filas);
 
-// 6)
+    for (int f = 0; f < filas; f++)
+        matriz[f] = (char*)malloc(sizeof(char)*cols);
+
+    int pos = 0, i = 0, j = 0;
+
+    while (frase[pos] != '\0')
+    {
+        if (frase[pos] != ' ')
+        {
+            matriz[i][j] = frase[pos];
+            j++;
+        }
+        else
+        {
+            matriz[i][j] = '\0';
+            j = 0;
+            i++;
+        }
+
+        pos++;
+    }
+
+    matriz[i][j] = '\0';
+
+    return matriz;
+}
+
+int buscarIdDocYPosEnOcurrencias (nodoT* ocurrencias, int idDoc, int pos) // devuelve 1 o 0 si un idDoc y pos se encuentra en una lista de ocurrencias
+{
+    if (ocurrencias)
+    {
+        if (ocurrencias->idDOC == idDoc && ocurrencias->pos == pos)
+            return 1;
+        else
+            return buscarIdDocYPosEnOcurrencias(ocurrencias->sig, idDoc, pos);
+    }
+    else
+        return 0;
+}
+
+int buscarPalabraConIdDocYPos (nodoA* arbol, char* palabra, int idDoc, int pos) // devuelve 1 o 0 si una palabra con un idDoc y pos determinados se encuentra en el arbol
+{
+    if (arbol)
+    {
+        if (strcmpi(arbol->palabra, palabra) == 0)
+            return buscarIdDocYPosEnOcurrencias(arbol->ocurrencias, idDoc, pos);
+        else
+        {
+            if (strcmpi(arbol->palabra, palabra) > 0)
+                return buscarPalabraConIdDocYPos(arbol->izq, palabra, idDoc, pos);
+            else
+                return buscarPalabraConIdDocYPos(arbol->der, palabra, idDoc, pos);
+        }
+    }
+    else
+        return 0;
+}
+
+void liberarMatrizChar (char** matriz, int filas) // libera matrices char
+{
+    for (int i = 0; i < filas; i++)
+        free(matriz[i]);
+
+    free(matriz);
+}
+
+void buscarFrase (nodoA* arbol, char* frase)
+{
+    int cantPalabras = retornarCantPalabras(frase);
+
+    int i, pos, idDoc, flag = 0;
+
+    // i: recorre arreglo de strings
+    // flag: verifica si se encontró la frase
+
+    char** palabras = retornarArregloDeStrings(frase, cantPalabras); // se crea un arreglo de strings con las palabras de la frase
+
+    nodoT* ocurrs1erPalabra = retornarListaOcurrenciasDeUnaPalabra(arbol, palabras[0]); // se guarda la lista de ocurrencias de la primer palabra
+
+    while (ocurrs1erPalabra && !flag) // verifica si las demás palabras de la frase pueden ser contiguas a alguna ocurrencia de la primer palabra
+    {
+        pos = ocurrs1erPalabra->pos + 1; // posicion de la ocurrencia (primer palabra) + 1, para verificar contiguidad de la segunda
+        idDoc = ocurrs1erPalabra->idDOC; // idDoc de la ocurrencia
+
+        i = 1; // reset i para recorrer nuevamente el arreglo de strings
+
+        while (i < cantPalabras && buscarPalabraConIdDocYPos(arbol, palabras[i], idDoc, pos)) // verifica si todas las demás palabras de la frase se encuentran contiguas
+        {
+            i++;
+            pos++; // aumenta pos para verificar contiguidad entre las palabras
+        }
+
+        if (i == cantPalabras) // si todas las palabras son contiguas (el anterior while cortó porque i == cantPalabras)
+            flag = 1;
+        else
+            ocurrs1erPalabra = ocurrs1erPalabra->sig; // sino, seguir buscando con los IdDoc y Pos's de las demás ocurrencias de la primer palabra
+    }
+
+    liberarMatrizChar(palabras, cantPalabras);
+
+    if (flag) // si se encontró la frase
+        printf("SE ENCONTRÓ LA FRASE EN EL DOCUMENTO %i, A PARTIR DE LA POS %i.\n", ocurrs1erPalabra->idDOC, ocurrs1erPalabra->pos);
+    else
+        printf("NO SE ENCONTRO LA FRASE '%s'.\n", frase);
+}
+
+// 5) Buscar la palabra de más frecuencia que aparece en alguno de los docs.
+
+nodoA* buscarTerminoMasFrecuente (nodoA* arbol)
+{
+    if (arbol)
+    {
+        nodoA* auxIzq = buscarTerminoMasFrecuente(arbol->izq);
+        nodoA* auxDer = buscarTerminoMasFrecuente(arbol->der);
+
+        if (auxIzq && auxDer)
+        {
+            if (arbol->frecuencia > auxIzq->frecuencia && arbol->frecuencia > auxDer->frecuencia)
+                return arbol;
+            else if (auxIzq->frecuencia > arbol->frecuencia && auxIzq->frecuencia > auxDer->frecuencia)
+                return auxIzq;
+            else
+                return auxDer;
+        }
+        else if (auxIzq)
+        {
+            if (arbol->frecuencia > auxIzq->frecuencia)
+                return arbol;
+            else
+                return auxIzq;
+        }
+        else if (auxDer)
+        {
+            if (arbol->frecuencia > auxDer->frecuencia)
+                return arbol;
+            else
+                return auxDer;
+        }
+        else
+            return arbol;
+
+    }
+    else
+        return NULL;
+}
+
+void mostrarTerminoMasFrecuente (nodoA* arbol)
+{
+    if (arbol)
+    {
+        nodoA* terminoMasFrec = buscarTerminoMasFrecuente(arbol);
+        nodoT* ocurrencias = terminoMasFrec->ocurrencias;
+
+        printf("EL TERMINO MAS FRECUENTE ES %s.\n", terminoMasFrec->palabra);
+        printf("LISTA DE OCURRENCIAS:\n");
+
+        while(ocurrencias)
+        {
+            printf("===================\n");
+            printf("ID DOC: %i\n", ocurrencias->idDOC);
+            printf("POS: %i\n", ocurrencias->pos);
+            ocurrencias = ocurrencias->sig;
+        }
+        printf("===================\n");
+    }
+    else
+        printf("EL ARBOL ESTA VACIO.\n");
+}
+
+// 6) Utilizar la distancia de levenshtein en el ingreso de una palabra y sugerir similares a partir de una distancia <= 3.
+
+int Minimo (int a, int b)
+{
+    if (a < b)
+        return a;
+    else
+        return b;
+}
 
 int Levenshtein(char *s1,char *s2)
 {
@@ -613,6 +805,30 @@ int Levenshtein(char *s1,char *s2)
     return(res);
 }
 
+void sugerirSimilares (nodoA* arbol, char* palabra)
+{
+    if (arbol)
+    {
+        if (Levenshtein(arbol->palabra, palabra) <= 3)
+        {
+            printf("===================\n");
+            printf("%s\n", arbol->palabra);
+        }
+        sugerirSimilares(arbol->izq, palabra);
+        sugerirSimilares(arbol->der, palabra);
+    }
+}
+
+// 7) añadir texto
+
+
+
+// 8) menú
+
+void menu ()
+{
+
+}
 
 
 /// MAIN
