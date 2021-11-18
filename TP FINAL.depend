@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1637124576 source:c:\users\-\onedrive\escritorio\tp-final-lab-ii\main.c
+	<stdio.h>
+	<stdlib.h>
+	"string.h"
+

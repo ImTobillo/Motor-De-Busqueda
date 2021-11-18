@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "string.h"
+#include "gotoxy.h"
 #define leng "c.txt"
 #define boca "bocajuniors.txt"
 #define idDocArch "idDoc.bin"
@@ -232,92 +233,8 @@ nodoT* crearNodoOcurrencias(int idDoc, int pos)
     return nuevo;
 }
 
-//Inserta ordenado alfabéticamente el nodo en el árbol
-void insertarEnArbol(nodoA** arbol, char* registro)
-{
-    if(*arbol == NULL)
-    {
-        *arbol = crearNodoArbol(registro);
-    }
-    else
-    {
-        if(strcmpi((*arbol)->palabra, registro) > 0)
-        {
-            insertarEnArbol(&(*arbol)->izq, registro);
-        }
-        else
-        {
-            insertarEnArbol(&(*arbol)->der, registro);
-        }
-    }
-}
-
 //Inserta la ocurrencia en la lista, creando un nodo nuevo con los datos y luego lo inserta ordenado. También comprueba la posición
-void insertarOcurrencia(nodoT** lista, nodoT* ocurrencia)
-{
-    nodoT* nuevo = crearNodoOcurrencias(ocurrencia->idDOC, ocurrencia->pos);
-    nodoT* act;
-    nodoT* ant;
-
-    if(*lista == NULL)
-    {
-        *lista = nuevo;
-    }
-    else
-    {
-        if(nuevo->idDOC < (*lista)->idDOC)
-        {
-            nuevo->sig = *lista;
-            *lista = nuevo;
-        }
-        else
-        {
-            act = (*lista)->sig;
-            ant = *lista;
-
-            while(act != NULL && act->idDOC <= nuevo->idDOC && act->pos < nuevo->pos)
-            {
-                ant = act;
-                act = act->sig;
-            }
-
-            nuevo->sig = act;
-            ant->sig = nuevo;
-        }
-    }
-}
-
-//Busca el arbol hasta encontrar la palabra, si no la encuentra la agrega al principio, si la encuentra, solo agrega la ocurrencia
-void buscaPalabra(nodoA** arbol, char* clave, nodoT* ocurrencia)
-{
-    nodoA* aux = *arbol;
-
-    while(aux != NULL && strcmpi(aux->palabra, clave) != 0)
-    {
-        if(strcmpi(aux->palabra, clave) > 0)
-        {
-            aux = aux->izq;
-        }
-        else
-        {
-            aux = aux->der;
-        }
-    }
-
-    if(aux != NULL && strcmpi(aux->palabra, clave) == 0)
-    {
-        insertarOcurrencia(&aux->ocurrencias, ocurrencia);
-        aux->frecuencia = aux->frecuencia + 1;
-    }
-    else
-    {
-        insertarEnArbol(&aux, clave);
-        insertarOcurrencia(&aux->ocurrencias, ocurrencia);
-        aux->frecuencia = aux->frecuencia + 1;
-    }
-}
-
-void insertarOcurrenciaRec(nodoT** ocurrencias, nodoT* nuevo)
+void insertarOcurrencia(nodoT** ocurrencias, nodoT* nuevo)
 {
     if (*ocurrencias)
     {
@@ -329,7 +246,7 @@ void insertarOcurrenciaRec(nodoT** ocurrencias, nodoT* nuevo)
                 *ocurrencias = nuevo;
             }
             else
-                insertarOcurrenciaRec(&(*ocurrencias)->sig, nuevo);
+                insertarOcurrencia(&(*ocurrencias)->sig, nuevo);
         }
         else if (nuevo->idDOC < (*ocurrencias)->idDOC)
         {
@@ -337,12 +254,13 @@ void insertarOcurrenciaRec(nodoT** ocurrencias, nodoT* nuevo)
             *ocurrencias = nuevo;
         }
         else
-            insertarOcurrenciaRec(&(*ocurrencias)->sig, nuevo);
+            insertarOcurrencia(&(*ocurrencias)->sig, nuevo);
     }
     else
         *ocurrencias = nuevo;
 }
 
+//Busca e inserta ordenada alfabéticamente la palabra en el árbol, junto con su nueva ocurrencia
 void buscarEInsertar (nodoA** arbol, char* palabra, nodoT* ocurrencia)
 {
     if (*arbol)
@@ -350,7 +268,7 @@ void buscarEInsertar (nodoA** arbol, char* palabra, nodoT* ocurrencia)
         if (strcmpi((*arbol)->palabra, palabra) == 0)
         {
             (*arbol)->frecuencia++;
-            insertarOcurrenciaRec(&(*arbol)->ocurrencias, ocurrencia);
+            insertarOcurrencia(&(*arbol)->ocurrencias, ocurrencia);
         }
         else
         {
@@ -381,11 +299,12 @@ void generarArbolBusqueda(nodoA** ABBDiccionario)
         {
             ocurrencia = crearNodoOcurrencias(registro.idDOC, registro.pos);
 
-            //buscaPalabra(&(*ABBDiccionario), registro.palabra, ocurrencia);
             buscarEInsertar(ABBDiccionario, registro.palabra, ocurrencia);
         }
         fclose(diccionario);
     }
+    else
+        printf("ERROR.\n");
 }
 
 void mostrarArbol(nodoA* arbol)
@@ -821,7 +740,98 @@ void sugerirSimilares (nodoA* arbol, char* palabra)
 
 // 7) añadir texto
 
+int retornarCantCaracteres (char* string)
+{
+    int i = 0, cant = 0;
 
+    while (string[i] != '\0')
+    {
+        cant++;
+        i++;
+    }
+
+    return cant;
+}
+
+void llenarArregloDeTerminosYAgregarADiccionario (termino* terminos, char* texto)
+{
+    FILE* fp = fopen(idDocArch, "r+b");
+
+    if (fp)
+    {
+        int i = 0, pos = 0, validos = 0, idDoc, flag = 0;
+
+        fread(&idDoc, sizeof(int), 1, fp);
+        idDoc++;
+        fseek(fp, -1*sizeof(int), SEEK_CUR);    /// se incrementa idDoc
+        fwrite(&idDoc, sizeof(int), 1, fp);
+
+        char* palabra = (char*)malloc(sizeof(char)*20), caracter;
+
+        while(texto[i] != '\0')
+        {
+            caracter = texto[i];
+//                    (65 a 90 MAYUSCULAS)                   (97 a 122 MINUSCULAS)
+            if((caracter >= 65 && caracter <= 90) || (caracter >= 97 && caracter && 122))
+            {
+                flag = 0;
+                agregaCaracterAPalabra(palabra, caracter);
+            }
+            else
+            {
+                if(flag == 0)
+                {
+                    flag = 1;
+
+                    strcpy(terminos[validos].palabra, palabra);
+                    terminos[validos].idDOC = idDoc;
+                    terminos[validos].pos = pos;
+                    pos++;
+
+                    validos++;
+
+                    palabra[0] = '\0';
+                }
+            }
+
+            i++;
+        }
+
+        strcpy(terminos[validos].palabra, palabra);
+        terminos[validos].idDOC = idDoc;
+        terminos[validos].pos = pos;
+        validos++;
+
+        free(palabra);
+
+        escrituraDiccionario(terminos, validos);
+
+        fclose(fp);
+    }
+    else
+        printf("ERROR.\n");
+}
+
+void agregarTexto (nodoA** arbol)
+{
+    char* texto = (char*)malloc(sizeof(char)*1000);
+
+    printf("INGRESE EL TEXTO QUE QUIERA AGREGAR AL DICCIONARIO (MAXIMO 1000 CARACTERES):\n");
+    scanf("%s", texto);
+    fflush(stdin);
+
+    if (retornarCantPalabras(texto) > 0)
+    {
+        termino* terminos = (termino*)malloc(sizeof(termino)*retornarCantCaracteres(texto));
+
+        llenarArregloDeTerminosYAgregarADiccionario(terminos, texto);
+
+        free(texto);
+        free(terminos);
+    }
+    else
+        printf("EL TEXTO TIENE 0 PALABRAS.\n");
+}
 
 // 8) menú
 
