@@ -208,7 +208,7 @@ void leer()
     }
 }
 
-// MOTOR DE BUSQUEDA - Julian
+/// MOTOR DE BUSQUEDA - Julian
 
 //Crear nodos
 nodoA* crearNodoArbol(char* palabra)
@@ -753,13 +753,13 @@ int retornarCantCaracteres (char* string)
     return cant;
 }
 
-void llenarArregloDeTerminosYAgregarADiccionario (termino* terminos, char* texto)
+void llenarArregloDeTerminosEIncrementarIdDoc (termino* terminos, int* validos, char* texto)
 {
     FILE* fp = fopen(idDocArch, "r+b");
 
     if (fp)
     {
-        int i = 0, pos = 0, validos = 0, idDoc, flag = 0;
+        int i = 0, pos = 0, idDoc, flag = 0;
 
         fread(&idDoc, sizeof(int), 1, fp);
         idDoc++;
@@ -783,12 +783,12 @@ void llenarArregloDeTerminosYAgregarADiccionario (termino* terminos, char* texto
                 {
                     flag = 1;
 
-                    strcpy(terminos[validos].palabra, palabra);
-                    terminos[validos].idDOC = idDoc;
-                    terminos[validos].pos = pos;
+                    strcpy(terminos[*validos].palabra, palabra);
+                    terminos[*validos].idDOC = idDoc;
+                    terminos[*validos].pos = pos;
                     pos++;
 
-                    validos++;
+                    (*validos)++;
 
                     palabra[0] = '\0';
                 }
@@ -797,19 +797,23 @@ void llenarArregloDeTerminosYAgregarADiccionario (termino* terminos, char* texto
             i++;
         }
 
-        strcpy(terminos[validos].palabra, palabra);
-        terminos[validos].idDOC = idDoc;
-        terminos[validos].pos = pos;
-        validos++;
+        strcpy(terminos[*validos].palabra, palabra);
+        terminos[*validos].idDOC = idDoc;
+        terminos[*validos].pos = pos;
+        (*validos)++;
 
         free(palabra);
-
-        escrituraDiccionario(terminos, validos);
 
         fclose(fp);
     }
     else
         printf("ERROR.\n");
+}
+
+void recorrerArregloTerminosYAgregarAArbol(nodoA** arbol, termino* terminos, int validos)
+{
+    for (int i = 0; i < validos; i++)
+        buscarEInsertar(arbol, terminos[i].palabra, crearNodoOcurrencias(terminos[i].idDOC, terminos[i].pos));
 }
 
 void agregarTexto (nodoA** arbol)
@@ -818,26 +822,82 @@ void agregarTexto (nodoA** arbol)
 
     printf("INGRESE EL TEXTO QUE QUIERA AGREGAR AL DICCIONARIO (MAXIMO 1000 CARACTERES):\n");
     scanf("%s", texto);
-    fflush(stdin);
+    fflush(stdin);            // se lee el texto en un string de tamaño 1000
 
-    if (retornarCantPalabras(texto) > 0)
+    if (retornarCantPalabras(texto) > 0) // si el usuario escribio por lo menos una palabra
     {
+        int validos = 0; // validos del arreglo de terminos
+
         termino* terminos = (termino*)malloc(sizeof(termino)*retornarCantCaracteres(texto));
 
-        llenarArregloDeTerminosYAgregarADiccionario(terminos, texto);
+        llenarArregloDeTerminosEIncrementarIdDoc(terminos, &validos, texto); // llena el arreglo de terminos con las palabras del texto
 
-        free(texto);
+        escrituraDiccionario(terminos, validos); /// añade todos los terminos del arreglo al diccionario
+
+        recorrerArregloTerminosYAgregarAArbol(arbol, terminos, validos); // añade todos los terminos al arbol
+
         free(terminos);
     }
     else
         printf("EL TEXTO TIENE 0 PALABRAS.\n");
+
+    free(texto);
 }
 
 // 8) menú
 
-void menu ()
+void menu (nodoA** arbol)
 {
+    char opcion;
 
+    printf("INGRESE UNA OPCION:");
+
+    printf("(1) Buscar todas las apariciones de un término en algún documento.");
+    printf("(2) Buscar todas las apariciones de un término en un documento y otro.");
+    printf("(3) Buscar la aparición de más de un término en el mismo documento.");
+    printf("(4) Buscar una frase completa.");
+    printf("(5) Buscar la palabra mas frecuente.");
+    printf("(6) Sugerir palabras similares.");
+    printf("(7) Inyectar texto.");
+
+    opcion = getchar();
+
+    switch(opcion)
+    {
+    case '1':
+        {
+
+            break;
+        }
+    case '2':
+        {
+
+            break;
+        }
+    case '3':
+        {
+
+            break;
+        }
+    case '4':
+        {
+
+            break;
+        }
+    case '':
+        {
+
+            break;
+        }
+    default:
+        {
+            printf("OPCION INCORRECTA");
+            system("pause");
+            system("cls");
+            menu(arbol);
+            break;
+        }
+    }
 }
 
 

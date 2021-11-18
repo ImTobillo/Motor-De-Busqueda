@@ -4,3 +4,8 @@
 	<stdlib.h>
 	"string.h"
 
+1491400450 source:c:\users\liliana cosmano\desktop\tp-final-lab-ii\gotoxy.c
+	<stdio.h>
+	<stdlib.h>
+	<windows.h>
+
