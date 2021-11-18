@@ -9,3 +9,9 @@
 	<stdlib.h>
 	<windows.h>
 
+1637260275 source:c:\users\liliana cosmano\desktop\tp-final-lab-ii\main.c
+	<stdio.h>
+	<stdlib.h>
+	"string.h"
+	"gotoxy.h"
+
