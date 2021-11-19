@@ -855,22 +855,31 @@ void agregarTexto (nodoA** arbol)
 
 void mostrarOpciones()
 {
+    int x = 20, y = 15;
 
+    gotoxy(x, y);
+    printf("INGRESE UNA OPCION:");
+    gotoxy(x, y++);
+    printf("(1) Buscar todas las apariciones de un término en algún documento.");
+    gotoxy(x, y++);
+    printf("(2) Buscar todas las apariciones de un término en un documento y otro.");
+    gotoxy(x, y++);
+    printf("(3) Buscar la aparición de más de un término en el mismo documento.");
+    gotoxy(x, y++);
+    printf("(4) Buscar una frase completa.");
+    gotoxy(x, y++);
+    printf("(5) Buscar la palabra mas frecuente.");
+    gotoxy(x, y++);
+    printf("(6) Sugerir palabras similares.");
+    gotoxy(x, y++);
+    printf("(7) Inyectar texto.");
 }
 
 void menu (nodoA** arbol)
 {
     char opcion;
 
-    printf("INGRESE UNA OPCION:");
-
-    printf("(1) Buscar todas las apariciones de un término en algún documento.");
-    printf("(2) Buscar todas las apariciones de un término en un documento y otro.");
-    printf("(3) Buscar la aparición de más de un término en el mismo documento.");
-    printf("(4) Buscar una frase completa.");
-    printf("(5) Buscar la palabra mas frecuente.");
-    printf("(6) Sugerir palabras similares.");
-    printf("(7) Inyectar texto.");
+    mostrarOpciones();
 
     opcion = getchar();
 
