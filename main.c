@@ -57,11 +57,14 @@ void mostrarOcurrencias (nodoT*);
 
 // DICCIONARIO - Lauti
 
+/// ------------- Diccionario -------------
+/// Se tienen N documentos, donde se leerán todas las palabras de cada uno de ellos.
+/// Los documentos deben ser archivos de texto leídos como un binario (char)), sobre un vector que contendrá cada palabra,
+/// id de documento al que pertenece, y posición en dicho documento.
 
-
-int cantDatosArch()
+int cantDatosArch(char* nomArch)
 {
-    FILE* puntArch = fopen(boca, "rb");
+    FILE* puntArch = fopen(nomArch, "rb");
 
     int total = 0;
 
@@ -74,10 +77,22 @@ int cantDatosArch()
     return total;
 }
 
-/// ------------- Diccionario -------------
-/// Se tienen N documentos, donde se leerán todas las palabras de cada uno de ellos.
-/// Los documentos deben ser archivos de texto leídos como un binario (char)), sobre un vector que contendrá cada palabra,
-/// id de documento al que pertenece, y posición en dicho documento.
+void inicIdDoc()    // USAR UNA VEZ
+{
+    FILE* puntArch = fopen(idDocArch, "wb");    //  WB
+
+    int idDoc = 0;
+
+    if (puntArch)
+    {
+        fwrite(&idDoc, sizeof(int), 1, puntArch);
+        fclose(puntArch);
+    }
+    else
+    {
+        printf("Error\n");
+    }
+}
 
 void agregaCaracterAPalabra(char* palabras, char caracter)
 {
@@ -92,37 +107,17 @@ void agregaCaracterAPalabra(char* palabras, char caracter)
     palabras[i+1] = '\0';
 }
 
-void inicIdDoc()
-{
-    FILE* puntArch = fopen(idDocArch, "wb");    //  WB
-
-    int idDoc = 0;
-
-    if (puntArch)
-    {
-        fwrite(&idDoc, sizeof(int), 1, puntArch);
-        fclose(puntArch);
-    }
-    else
-    {
-        printf("ERROR.\n");
-    }
-}
-
-///    a mí en este caso se me ocurre hacer una función que reciba el caracter leído y lo compare con los caracteres especiales
-///   (vocales con tilde, ñ), si lo encuentra igual a uno entonces devolves un char con el valor entero de la tabla ascii,
-///    ej:* entra 'ó' entonces devuelve 162, se lo asignas a tu variable caracter y ahora sí entraría en el if
-
 void leerArchivo(termino* terminos, int* validos, char* nomArch)
 {
     FILE* puntArchIdDoc = fopen(idDocArch, "r+b");   // r+b
     FILE* puntArch = fopen(nomArch, "rb");
 
-    int flag = 0, pos = 0, idDoc;   // variable para saber si se leyó un caracter raro
+    int flag = 0;   // Para saber si se leyó un caracter raro
 
+    int pos = 0, idDoc;
     char palabra[20], caracter;
 
-    memset(palabra, 0, 20*sizeof(palabra[0]));
+    memset(palabra, 0, 20*sizeof(palabra[0]));  // Inicializamos el arreglo porque sino la primer palabra muestra caracteres raros
 
     if(puntArchIdDoc != NULL && puntArch != NULL)
     {
@@ -134,7 +129,7 @@ void leerArchivo(termino* terminos, int* validos, char* nomArch)
         while(fread(&caracter, sizeof(char), 1, puntArch) > 0)
         {
 //                    (65 a 90 MAYUSCULAS)                   (97 a 122 MINUSCULAS)
-            if((caracter >= 65 && caracter <= 90) || (caracter >= 97 && caracter && 122) || caracter == 177)   // AGREGAR ACENTOS
+            if((caracter >= 65 && caracter <= 90) || (caracter >= 97 && caracter && 122))
             {
                 flag = 0;
                 agregaCaracterAPalabra(palabra, caracter);
@@ -152,11 +147,19 @@ void leerArchivo(termino* terminos, int* validos, char* nomArch)
 
                     (*validos)++;
 
-                    //     palabra[0] = '\0';      // VER OTRA FORMA PARA ESTO
-
-                    memset(palabra, 0, 20*sizeof(palabra[0]));  // Inicializa todas las celdas en 0
+                    memset(palabra, 0, 20*sizeof(palabra[0]));  // Reinicializa todas las celdas en 0
                 }
             }
+        }
+
+        if(palabra[0] != 0)
+        {
+            strcpy(terminos[*validos].palabra, palabra);
+            terminos[*validos].idDOC = idDoc;
+            terminos[*validos].pos = pos;
+            pos++;
+
+            (*validos)++;
         }
 
         fclose(puntArchIdDoc);
@@ -173,7 +176,7 @@ void leerArchivo(termino* terminos, int* validos, char* nomArch)
 
 void escrituraDiccionario(termino* terminos, int validos)
 {
-    FILE* puntArch = fopen("diccionario.bin", "ab"); // WB -> AB
+    FILE* puntArch = fopen("diccionario.bin", "ab");    // AB
 
     int i = 0;
 
@@ -609,7 +612,7 @@ void buscarFrase (nodoA* arbol, char* frase)
     liberarMatrizChar(palabras, cantPalabras);
 
     if (flag) // si se encontró la frase
-        printf("SE ENCONTRÓ LA FRASE EN EL DOCUMENTO %i, A PARTIR DE LA POS %i.\n", ocurrs1erPalabra->idDOC, ocurrs1erPalabra->pos);
+        printf("SE ENCONTRO LA FRASE EN EL DOCUMENTO %i, A PARTIR DE LA POS %i.\n", ocurrs1erPalabra->idDOC, ocurrs1erPalabra->pos);
     else
         printf("NO SE ENCONTRO LA FRASE '%s'.\n", frase);
 }
@@ -661,7 +664,7 @@ void mostrarTerminoMasFrecuente (nodoA* arbol)
         nodoA* terminoMasFrec = buscarTerminoMasFrecuente(arbol);
         nodoT* ocurrencias = terminoMasFrec->ocurrencias;
 
-        printf("EL TERMINO MAS FRECUENTE ES %s.\n", terminoMasFrec->palabra);
+        printf("EL TERMINO MAS FRECUENTE ES '%s'.\n", terminoMasFrec->palabra);
         printf("LISTA DE OCURRENCIAS:\n");
 
         while(ocurrencias)
@@ -797,6 +800,7 @@ void llenarArregloDeTerminosEIncrementarIdDoc (termino* terminos, int* validos, 
             i++;
         }
 
+        agregaCaracterAPalabra(palabra, '\0');
         strcpy(terminos[*validos].palabra, palabra);
         terminos[*validos].idDOC = idDoc;
         terminos[*validos].pos = pos;
@@ -813,7 +817,10 @@ void llenarArregloDeTerminosEIncrementarIdDoc (termino* terminos, int* validos, 
 void recorrerArregloTerminosYAgregarAArbol(nodoA** arbol, termino* terminos, int validos)
 {
     for (int i = 0; i < validos; i++)
+    {
+        printf("%s\n", terminos[i].palabra);
         buscarEInsertar(arbol, terminos[i].palabra, crearNodoOcurrencias(terminos[i].idDOC, terminos[i].pos));
+    }
 }
 
 void agregarTexto (nodoA** arbol)
@@ -845,6 +852,11 @@ void agregarTexto (nodoA** arbol)
 }
 
 // 8) menú
+
+void mostrarOpciones()
+{
+
+}
 
 void menu (nodoA** arbol)
 {
@@ -901,19 +913,58 @@ void menu (nodoA** arbol)
 }
 
 
-/// MAIN
+// interfaz
 
-int main()
+void portada()
 {
-    //inicIdDoc();  // Usar solamente al cargar el primer texto
+    int x = 20, y = 4;
 
-/*    termino *arreglo;
-    int validos = 0;
-    arreglo = (termino*)malloc(sizeof(termino)*cantDatosArch());
+    gotoxy(x, y++);
+    printf("  __  __  ____ _______ ____  _____\n");
+    gotoxy(x, y++);
+    printf(" |  \\/  |/ __ \\__   __/ __ \\|  __ \\ \n");
+    gotoxy(x, y++);
+    printf(" | \\  / | |  | | | | | |  | | |__) | \n");
+    gotoxy(x, y++);
+    printf(" | |\\/| | |  | | | | | |  | |  _  /\n");
+    gotoxy(x, y++);
+    printf(" | |  | | |__| | | | | |__| | | \\ \\ \n");
+    gotoxy(x, y++);
+    printf(" |_|  |_|\\____/  |_|  \\____/|_|  \\_\\ \n");
+    gotoxy(x, y++);
+    printf("                      _____  ______ \n");
+    gotoxy(x, y++);
+    printf("                     |  __ \\|  ____| \n");
+    gotoxy(x, y++);
+    printf("                     | |  | | |__ \n");
+    gotoxy(x, y++);
+    printf("                     | |  | |  __|\n");
+    gotoxy(x, y++);
+    printf("                     | |__| | |____ \n");
+    gotoxy(x, y++);
+    printf("                     |_____/|______|\n");
+    gotoxy(x, y++);
+    printf("                      ____  _    _  _____  ____  _    _ ______ _____          \n");
+    gotoxy(x, y++);
+    printf("                     |  _ \\| |  | |/ ____|/ __ \\| |  | |  ____|  __ \\   /\\ \n");
+    gotoxy(x, y++);
+    printf("                     | |_) | |  | | (___ | |  | | |  | | |__  | |  | | /  \\ \n");
+    gotoxy(x, y++);
+    printf("                     |  _ <| |  | |\\___ \\| |  | | |  | |  __| | |  | |/ /\\ \\ \n");
+    gotoxy(x, y++);
+    printf("                     | |_) | |__| |____) | |__| | |__| | |____| |__| / ____ \\ \n");
+    gotoxy(x, y++);
+    printf("                     |____/ \\____/|_____/ \\___\\_\\\\____/|______|_____/_/    \\_\\ \n");
 
-    leerArchivo(arreglo, &validos, boca);
-*/
-/*    for (int i = 0; i < validos; i++)
+    gotoxy(x+18, y+3);
+    system("pause");
+    system("cls");
+}
+
+void mostrarArregloTerminos (termino* arreglo, int validos)
+{
+    printf("------------------ ARREGLO DINAMICO DE TERMINOS ------------------\n");
+    for (int i = 0; i < validos; i++)
     {
         printf("____________________________\n");
         printf("Palabra: %s \n", arreglo[i].palabra);
@@ -921,23 +972,61 @@ int main()
         printf("Posicion: %i \n", arreglo[i].pos);
         printf("____________________________\n");
     }
-*/
-//    printf("Validos: %i\n", validos);
-//    printf("Cant: %i\n", cantDatosArch());
+}
 
-    printf("----------- ARCHIVO DICCIONARIO -----------\n");
+void insertarTextosBase()
+{
+    inicIdDoc();
 
-//    escrituraDiccionario(arreglo, validos);
+    termino* arreglo;
+    int validos = 0;
+    arreglo = (termino*)malloc(sizeof(termino)*cantDatosArch(boca));
+
+    leerArchivo(arreglo, &validos, boca);
+    escrituraDiccionario(arreglo, validos);
+
+    //mostrarArregloTerminos(arreglo, validos);
+
+    free(arreglo);
+
+    arreglo = (termino*)malloc(sizeof(termino)*cantDatosArch(leng));
+    validos = 0;
+    leerArchivo(arreglo, &validos, leng);
+    escrituraDiccionario(arreglo, validos);
+
+    //mostrarArregloTerminos(arreglo, validos);
+
+    free(arreglo);
+}
+
+/// MAIN
+
+int main()
+{
+    //insertarTextosBase();
+
+    printf("------------------ ARCHIVO DICCIONARIO ------------------\n");
+
     leer();
+    system("pause");
+    system("cls");
 
-//    unsigned char letra = 162;
-//    printf("LETRA: %c\n", letra);
+    portada();
 
-    nodoA* ABBDiccionario = NULL;
+    nodoA* arbolBB = NULL;
 
-    generarArbolBusqueda(&ABBDiccionario);
+    generarArbolBusqueda(&arbolBB);
 
-    mostrarArbol(ABBDiccionario);
+    mostrarArbol(arbolBB);
+
+    system("pause");
+    system("cls");
+
+    //mostrarTerminoMasFrecuente(arbolBB);
+
+    //buscarFrase(arbolBB, "en el sentido");
+
+    //agregarTexto(&arbolBB);
 
     return 0;
 }

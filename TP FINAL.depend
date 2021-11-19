@@ -1,8 +1,9 @@
 # depslib dependency file v1.0
-1637124576 source:c:\users\-\onedrive\escritorio\tp-final-lab-ii\main.c
+1637286921 source:c:\users\-\onedrive\escritorio\tp-final-lab-ii\main.c
 	<stdio.h>
 	<stdlib.h>
 	"string.h"
+	"gotoxy.h"
 
 1491400450 source:c:\users\liliana cosmano\desktop\tp-final-lab-ii\gotoxy.c
 	<stdio.h>
@@ -16,4 +17,11 @@
 	"gotoxy.h"
 
 1491399896 c:\users\liliana cosmano\desktop\tp-final-lab-ii\gotoxy.h
+
+1637271122 source:c:\users\-\onedrive\escritorio\tp-final-lab-ii\gotoxy.c
+	<stdio.h>
+	<stdlib.h>
+	<windows.h>
+
+1637271122 c:\users\-\onedrive\escritorio\tp-final-lab-ii\gotoxy.h
 
