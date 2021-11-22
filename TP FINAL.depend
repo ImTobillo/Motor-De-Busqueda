@@ -1,8 +1,9 @@
 # depslib dependency file v1.0
-1637286921 source:c:\users\-\onedrive\escritorio\tp-final-lab-ii\main.c
+1637542854 source:c:\users\-\onedrive\escritorio\tp-final-lab-ii\main.c
 	<stdio.h>
 	<stdlib.h>
 	"string.h"
+	"conio.h"
 	"gotoxy.h"
 
 1491400450 source:c:\users\liliana cosmano\desktop\tp-final-lab-ii\gotoxy.c

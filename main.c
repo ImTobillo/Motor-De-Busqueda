@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "string.h"
+#include "conio.h"
 #include "gotoxy.h"
 #define leng "c.txt"
 #define boca "bocajuniors.txt"
@@ -211,6 +212,45 @@ void leer()
     }
 }
 
+void mostrarArregloTerminos (termino* arreglo, int validos)
+{
+    printf("------------------ ARREGLO DINAMICO DE TERMINOS ------------------\n");
+    for (int i = 0; i < validos; i++)
+    {
+        printf("____________________________\n");
+        printf("Palabra: %s \n", arreglo[i].palabra);
+        printf("Id: %i \n", arreglo[i].idDOC);
+        printf("Posicion: %i \n", arreglo[i].pos);
+        printf("____________________________\n");
+    }
+}
+
+void insertarTextosBase()
+{
+    inicIdDoc();
+
+    termino* arreglo;
+    int validos = 0;
+    arreglo = (termino*)malloc(sizeof(termino)*cantDatosArch(boca));
+
+    leerArchivo(arreglo, &validos, boca);
+    escrituraDiccionario(arreglo, validos);
+
+    //mostrarArregloTerminos(arreglo, validos);
+
+    free(arreglo);
+
+    arreglo = (termino*)malloc(sizeof(termino)*cantDatosArch(leng));
+    validos = 0;
+    leerArchivo(arreglo, &validos, leng);
+    escrituraDiccionario(arreglo, validos);
+
+    //mostrarArregloTerminos(arreglo, validos);
+
+    free(arreglo);
+}
+
+
 /// MOTOR DE BUSQUEDA - Julian
 
 //Crear nodos
@@ -236,7 +276,7 @@ nodoT* crearNodoOcurrencias(int idDoc, int pos)
     return nuevo;
 }
 
-//Inserta la ocurrencia en la lista, creando un nodo nuevo con los datos y luego lo inserta ordenado. También comprueba la posición
+//Inserta la ocurrencia en la lista de forma ordenada con el IdDoc y luego la posición en dicho Doc como criterios de ordenación
 void insertarOcurrencia(nodoT** ocurrencias, nodoT* nuevo)
 {
     if (*ocurrencias)
@@ -336,7 +376,7 @@ void mostrarOcurrencias (nodoT* lista)
         lista = lista->sig;
     }
 
-    printf("=================\n");
+    printf("=================\n\n");
 }
 
 void buscarPalabraYMostrarOcurrencias (nodoA* arbol, char* palabra)
@@ -345,7 +385,7 @@ void buscarPalabraYMostrarOcurrencias (nodoA* arbol, char* palabra)
     {
         if (strcmpi(arbol->palabra, palabra) == 0)
         {
-            printf("OCURRENCIAS DE '%s':\n", palabra);
+            printf("\nOCURRENCIAS DE '%s':\n", palabra);
             mostrarOcurrencias(arbol->ocurrencias);
         }
         else
@@ -743,19 +783,6 @@ void sugerirSimilares (nodoA* arbol, char* palabra)
 
 // 7) añadir texto
 
-int retornarCantCaracteres (char* string)
-{
-    int i = 0, cant = 0;
-
-    while (string[i] != '\0')
-    {
-        cant++;
-        i++;
-    }
-
-    return cant;
-}
-
 void llenarArregloDeTerminosEIncrementarIdDoc (termino* terminos, int* validos, char* texto)
 {
     FILE* fp = fopen(idDocArch, "r+b");
@@ -835,7 +862,7 @@ void agregarTexto (nodoA** arbol)
     {
         int validos = 0; // validos del arreglo de terminos
 
-        termino* terminos = (termino*)malloc(sizeof(termino)*retornarCantCaracteres(texto));
+        termino* terminos = (termino*)malloc(sizeof(termino)*strlen(texto));
 
         llenarArregloDeTerminosEIncrementarIdDoc(terminos, &validos, texto); // llena el arreglo de terminos con las palabras del texto
 
@@ -855,63 +882,161 @@ void agregarTexto (nodoA** arbol)
 
 void mostrarOpciones()
 {
-
+    int x = 25, y = 7;
+    gotoxy(x, y);
+    printf("INGRESE UNA ");
+    color(9);
+    printf("OPCION");
+    color(15);
+    printf(":");
+    y = y + 2;
+    gotoxy(x, y);
+    color(9);
+    printf("(1) ");
+    color(15);
+    printf("Buscar todas las apariciones de un termino en algun documento.");
+    y = y + 2;
+    gotoxy(x, y);
+    color(9);
+    printf("(2) ");
+    color(15);
+    printf("Buscar todas las apariciones de un termino en un documento y otro.");
+    y = y + 2;
+    gotoxy(x, y);
+    color(9);
+    printf("(3) ");
+    color(15);
+    printf("Buscar la aparicion de mas de un termino en el mismo documento.");
+    y = y + 2;
+    gotoxy(x, y);
+    color(9);
+    printf("(4) ");
+    color(15);
+    printf("Buscar una frase completa.");
+    y = y + 2;
+    gotoxy(x, y);
+    color(9);
+    printf("(5) ");
+    color(15);
+    printf("Buscar la palabra mas frecuente.");
+    y = y + 2;
+    gotoxy(x, y);
+    color(9);
+    printf("(6) ");
+    color(15);
+    printf("Sugerir palabras similares.");
+    y = y + 2;
+    gotoxy(x, y);
+    color(9);
+    printf("(7) ");
+    color(15);
+    printf("Inyectar texto.");
 }
 
 void menu (nodoA** arbol)
 {
-    char opcion;
+    char opcion, palabraA[20], palabraB[20];
+    int docA, docB;
 
-    printf("INGRESE UNA OPCION:");
+    mostrarOpciones();
 
-    printf("(1) Buscar todas las apariciones de un término en algún documento.");
-    printf("(2) Buscar todas las apariciones de un término en un documento y otro.");
-    printf("(3) Buscar la aparición de más de un término en el mismo documento.");
-    printf("(4) Buscar una frase completa.");
-    printf("(5) Buscar la palabra mas frecuente.");
-    printf("(6) Sugerir palabras similares.");
-    printf("(7) Inyectar texto.");
-
-    opcion = getchar();
+    opcion = getch();
+    system("cls");
 
     switch(opcion)
     {
     case '1':
         {
+            printf("Ingrese el termino a buscar: ");
+            scanf("%s", palabraA);
+            fflush(stdin);
 
+            buscarPalabraYMostrarOcurrencias(*arbol, palabraA);
             break;
         }
     case '2':
         {
+            printf("Ingrese el termino a buscar y los idDoc's... \n");
+            printf("Termino: ");
+            scanf("%s", palabraA);
+            fflush(stdin);
+            printf("IdDoc A: ");
+            scanf("%i", &docA);
+            printf("IdDoc B: ");
+            scanf("%i", &docB);
 
+            buscarPalabraEnDosDocumentosYMostrarOcurrencias(*arbol, palabraA, docA, docB);
             break;
         }
     case '3':
         {
+            printf("Ingrese los terminos a buscar... \n");
+            printf("Termino A: ");
+            scanf("%s", palabraA);
+            fflush(stdin);
+            printf("Termino B: ");
+            scanf("%s", palabraB);
+            fflush(stdin);
+            printf("ID DOC al que tienen que pertenecer los terminos: ");
+            scanf("%i", &docA);
 
+            buscarPalabrasEnMismoDoc(*arbol, palabraA, palabraB, docA);
             break;
         }
     case '4':
         {
+            char frase[100];
+            printf("Ingrese la frase que quiera buscar: ");
+            scanf("%s", frase);
+            fflush(stdin);
 
+            buscarFrase(*arbol, frase);
             break;
         }
-    case '':
+    case '5':
         {
+            mostrarTerminoMasFrecuente(*arbol);
+            break;
+        }
+    case '6':
+        {
+            printf("Ingrese termino para obtener similares: ");
+            scanf("%s", palabraA);
+            fflush(stdin);
 
+            sugerirSimilares(*arbol, palabraA);
+            break;
+        }
+    case '7':
+        {
+            agregarTexto(arbol);
             break;
         }
     default:
         {
-            printf("OPCION INCORRECTA");
-            system("pause");
-            system("cls");
-            menu(arbol);
+            gotoxy(48, 12);
+            color(4);
+            printf("OPCION INCORRECTA.\n\n");
+            gotoxy(40, 15);
+            color(15);
             break;
         }
     }
-}
 
+    printf("\n\n");
+    system("pause");
+    system("cls");
+
+    gotoxy(48, 12);
+    printf("DESEA SEGUIR EN EL MENU? s/n");
+    opcion = getch();
+    fflush(stdin);
+    system("cls");
+    if (opcion == 's')
+        menu(arbol);
+    else
+        color(0);
+}
 
 // interfaz
 
@@ -961,72 +1086,67 @@ void portada()
     system("cls");
 }
 
-void mostrarArregloTerminos (termino* arreglo, int validos)
+void pantallaDeCarga(char* texto, int col)
 {
-    printf("------------------ ARREGLO DINAMICO DE TERMINOS ------------------\n");
-    for (int i = 0; i < validos; i++)
+    int x = 41;
+
+    gotoxy(36, 12);
+    printf("%s", texto);
+    gotoxy(40, 14);
+    printf(" ------------------------------");
+    gotoxy(40, 15);
+    printf("|                              |");
+    gotoxy(40, 16);
+    printf("|                              |");
+    gotoxy(40, 17);
+    printf(" ------------------------------");
+
+    color(col);
+
+    while (x < 71)
     {
-        printf("____________________________\n");
-        printf("Palabra: %s \n", arreglo[i].palabra);
-        printf("Id: %i \n", arreglo[i].idDOC);
-        printf("Posicion: %i \n", arreglo[i].pos);
-        printf("____________________________\n");
+        gotoxy(x, 15);
+        printf("=");
+        gotoxy(x, 16);
+        printf("=");
+        Sleep(200);
+        x++;
     }
-}
 
-void insertarTextosBase()
-{
-    inicIdDoc();
-
-    termino* arreglo;
-    int validos = 0;
-    arreglo = (termino*)malloc(sizeof(termino)*cantDatosArch(boca));
-
-    leerArchivo(arreglo, &validos, boca);
-    escrituraDiccionario(arreglo, validos);
-
-    //mostrarArregloTerminos(arreglo, validos);
-
-    free(arreglo);
-
-    arreglo = (termino*)malloc(sizeof(termino)*cantDatosArch(leng));
-    validos = 0;
-    leerArchivo(arreglo, &validos, leng);
-    escrituraDiccionario(arreglo, validos);
-
-    //mostrarArregloTerminos(arreglo, validos);
-
-    free(arreglo);
+    color(15);
+    system("cls");
 }
 
 /// MAIN
 
 int main()
 {
+    hidecursor(0); // oculta el cursor
+
+    portada();
+
+    pantallaDeCarga("INSERTANDO LOS TEXTOS BASE AL DICCIONARIO", 2);
+
     //insertarTextosBase();
 
-    printf("------------------ ARCHIVO DICCIONARIO ------------------\n");
+    /*printf("------------------ ARCHIVO DICCIONARIO ------------------\n");
 
     leer();
     system("pause");
     system("cls");
+*/
 
-    portada();
+    pantallaDeCarga("GENERANDO ARBOL DE BUSQUEDA CON TERMINOS", 3);
 
     nodoA* arbolBB = NULL;
 
     generarArbolBusqueda(&arbolBB);
 
-    mostrarArbol(arbolBB);
+    //mostrarArbol(arbolBB);
 
-    system("pause");
-    system("cls");
+    //system("pause");
+    //system("cls");
 
-    //mostrarTerminoMasFrecuente(arbolBB);
-
-    //buscarFrase(arbolBB, "en el sentido");
-
-    //agregarTexto(&arbolBB);
-
+    menu(&arbolBB);
     return 0;
 }
