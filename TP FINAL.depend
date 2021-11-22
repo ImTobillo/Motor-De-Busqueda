@@ -1,23 +1,23 @@
 # depslib dependency file v1.0
-1637542854 source:c:\users\-\onedrive\escritorio\tp-final-lab-ii\main.c
+1637545831 source:c:\users\-\onedrive\escritorio\tp-final-lab-ii\main.c
 	<stdio.h>
 	<stdlib.h>
 	"string.h"
 	"conio.h"
 	"gotoxy.h"
 
-1491400450 source:c:\users\liliana cosmano\desktop\tp-final-lab-ii\gotoxy.c
+1637350772 source:c:\users\liliana cosmano\desktop\tp-final-lab-ii\gotoxy.c
 	<stdio.h>
 	<stdlib.h>
 	<windows.h>
 
-1637260275 source:c:\users\liliana cosmano\desktop\tp-final-lab-ii\main.c
+1637351303 source:c:\users\liliana cosmano\desktop\tp-final-lab-ii\main.c
 	<stdio.h>
 	<stdlib.h>
 	"string.h"
 	"gotoxy.h"
 
-1491399896 c:\users\liliana cosmano\desktop\tp-final-lab-ii\gotoxy.h
+1637350772 c:\users\liliana cosmano\desktop\tp-final-lab-ii\gotoxy.h
 
 1637271122 source:c:\users\-\onedrive\escritorio\tp-final-lab-ii\gotoxy.c
 	<stdio.h>
