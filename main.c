@@ -783,13 +783,13 @@ void sugerirSimilares (nodoA* arbol, char* palabra)
 
 // 7) añadir texto
 
-void llenarArregloDeTerminosEIncrementarIdDoc (termino* terminos, int* validos, char* texto)
+void llenarArregloDeTerminosEIncrementarIdDoc (termino* terminos, int* validos)
 {
     FILE* fp = fopen(idDocArch, "r+b");
 
     if (fp)
     {
-        int i = 0, pos = 0, idDoc, flag = 0;
+        int pos = 0, idDoc, flag = 0;  // flag en 0 avisa que el último caracter leído fue una letra
 
         fread(&idDoc, sizeof(int), 1, fp);
         idDoc++;
@@ -798,40 +798,31 @@ void llenarArregloDeTerminosEIncrementarIdDoc (termino* terminos, int* validos, 
 
         char* palabra = (char*)malloc(sizeof(char)*20), caracter;
 
-        while(texto[i] != '\0')
+        do
         {
-            caracter = texto[i];
+            caracter = getch();
+            fflush(stdin);
+            printf("%c", caracter);
 //                    (65 a 90 MAYUSCULAS)                   (97 a 122 MINUSCULAS)
-            if((caracter >= 65 && caracter <= 90) || (caracter >= 97 && caracter && 122))
+            if((caracter >= 65 && caracter <= 90) || (caracter >= 97 && caracter <= 122))
             {
                 flag = 0;
                 agregaCaracterAPalabra(palabra, caracter);
             }
-            else
+            else if(flag == 0)
             {
-                if(flag == 0)
-                {
-                    flag = 1;
+                flag = 1;
 
-                    strcpy(terminos[*validos].palabra, palabra);
-                    terminos[*validos].idDOC = idDoc;
-                    terminos[*validos].pos = pos;
-                    pos++;
+                strcpy(terminos[*validos].palabra, palabra);
+                terminos[*validos].idDOC = idDoc;
+                terminos[*validos].pos = pos;
+                pos++;
 
-                    (*validos)++;
+                (*validos)++;
 
-                    palabra[0] = '\0';
-                }
+                palabra[0] = '\0';
             }
-
-            i++;
-        }
-
-        agregaCaracterAPalabra(palabra, '\0');
-        strcpy(terminos[*validos].palabra, palabra);
-        terminos[*validos].idDOC = idDoc;
-        terminos[*validos].pos = pos;
-        (*validos)++;
+        }while(caracter != 13); // 13 = tecla enter = retorno de carro
 
         free(palabra);
 
@@ -844,38 +835,24 @@ void llenarArregloDeTerminosEIncrementarIdDoc (termino* terminos, int* validos, 
 void recorrerArregloTerminosYAgregarAArbol(nodoA** arbol, termino* terminos, int validos)
 {
     for (int i = 0; i < validos; i++)
-    {
-        printf("%s\n", terminos[i].palabra);
         buscarEInsertar(arbol, terminos[i].palabra, crearNodoOcurrencias(terminos[i].idDOC, terminos[i].pos));
-    }
 }
 
 void agregarTexto (nodoA** arbol)
 {
-    char* texto = (char*)malloc(sizeof(char)*1000);
+    int validos = 0; // validos del arreglo de terminos
 
-    printf("INGRESE EL TEXTO QUE QUIERA AGREGAR AL DICCIONARIO (MAXIMO 1000 CARACTERES):\n");
-    scanf("%s", texto);
-    fflush(stdin);            // se lee el texto en un string de tamaño 1000
+    termino* terminos = (termino*)malloc(sizeof(termino)*500);
 
-    if (retornarCantPalabras(texto) > 0) // si el usuario escribio por lo menos una palabra
-    {
-        int validos = 0; // validos del arreglo de terminos
+    printf("INGRESE EL TEXTO QUE DESEE INYECTAR AL DICCIONARIO:\n");
 
-        termino* terminos = (termino*)malloc(sizeof(termino)*strlen(texto));
+    llenarArregloDeTerminosEIncrementarIdDoc(terminos, &validos); // llena el arreglo de terminos con las palabras del texto
 
-        llenarArregloDeTerminosEIncrementarIdDoc(terminos, &validos, texto); // llena el arreglo de terminos con las palabras del texto
+    escrituraDiccionario(terminos, validos); /// añade todos los terminos del arreglo al diccionario
 
-        escrituraDiccionario(terminos, validos); /// añade todos los terminos del arreglo al diccionario
+    recorrerArregloTerminosYAgregarAArbol(arbol, terminos, validos); // añade todos los terminos al arbol
 
-        recorrerArregloTerminosYAgregarAArbol(arbol, terminos, validos); // añade todos los terminos al arbol
-
-        free(terminos);
-    }
-    else
-        printf("EL TEXTO TIENE 0 PALABRAS.\n");
-
-    free(texto);
+    free(terminos);
 }
 
 // 8) menú
@@ -1123,20 +1100,20 @@ int main()
 {
     hidecursor(0); // oculta el cursor
 
-    portada();
+ //   portada();
 
     pantallaDeCarga("INSERTANDO LOS TEXTOS BASE AL DICCIONARIO", 2);
 
     //insertarTextosBase();
 
-    /*printf("------------------ ARCHIVO DICCIONARIO ------------------\n");
+  /*  printf("------------------ ARCHIVO DICCIONARIO ------------------\n");
 
     leer();
     system("pause");
     system("cls");
 */
 
-    pantallaDeCarga("GENERANDO ARBOL DE BUSQUEDA CON TERMINOS", 3);
+  //  pantallaDeCarga("GENERANDO ARBOL DE BUSQUEDA CON TERMINOS", 3);
 
     nodoA* arbolBB = NULL;
 
@@ -1148,5 +1125,6 @@ int main()
     //system("cls");
 
     menu(&arbolBB);
+
     return 0;
 }
