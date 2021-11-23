@@ -617,6 +617,23 @@ void liberarMatrizChar (char** matriz, int filas) // libera matrices char
     free(matriz);
 }
 
+void leerFrase(char* frase)
+{
+    memset(frase, 0, 100*sizeof(char));
+    char caracter;
+
+    do
+    {
+        caracter = getch();
+        fflush(stdin);
+        printf("%c", caracter);
+
+        if (caracter != 13)
+            agregaCaracterAPalabra(frase, caracter);
+
+    }while(caracter != 13);
+}
+
 void buscarFrase (nodoA* arbol, char* frase)
 {
     int cantPalabras = retornarCantPalabras(frase);
@@ -963,9 +980,8 @@ void menu (nodoA** arbol)
     case '4':
         {
             char frase[100];
-            printf("Ingrese la frase que quiera buscar: ");
-            scanf("%s", frase);
-            fflush(stdin);
+            printf("Ingrese la frase que quiera buscar: \n");
+            leerFrase(frase);
 
             buscarFrase(*arbol, frase);
             break;
@@ -1102,7 +1118,7 @@ int main()
 
  //   portada();
 
-    pantallaDeCarga("INSERTANDO LOS TEXTOS BASE AL DICCIONARIO", 2);
+ //   pantallaDeCarga("INSERTANDO LOS TEXTOS BASE AL DICCIONARIO", 2);
 
     //insertarTextosBase();
 
