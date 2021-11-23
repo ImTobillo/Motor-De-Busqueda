@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1637545831 source:c:\users\-\onedrive\escritorio\tp-final-lab-ii\main.c
+1637637023 source:c:\users\-\onedrive\escritorio\tp-final-lab-ii\main.c
 	<stdio.h>
 	<stdlib.h>
 	"string.h"
@@ -20,10 +20,10 @@
 
 1637350772 c:\users\liliana cosmano\desktop\tp-final-lab-ii\gotoxy.h
 
-1637271122 source:c:\users\-\onedrive\escritorio\tp-final-lab-ii\gotoxy.c
+1637635466 source:c:\users\-\onedrive\escritorio\tp-final-lab-ii\gotoxy.c
 	<stdio.h>
 	<stdlib.h>
 	<windows.h>
 
-1637271122 c:\users\-\onedrive\escritorio\tp-final-lab-ii\gotoxy.h
+1637635466 c:\users\-\onedrive\escritorio\tp-final-lab-ii\gotoxy.h
 

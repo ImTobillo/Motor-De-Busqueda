@@ -8,8 +8,8 @@
 #include "string.h"
 #include "conio.h"
 #include "gotoxy.h"
-#define leng "c.txt"
-#define boca "bocajuniors.txt"
+#define texto1 "texto1.txt"
+#define texto2 "texto2.txt"
 #define idDocArch "idDoc.bin"
 
 /// ESTRUCTURAS
@@ -38,7 +38,9 @@ typedef struct nodoA
 } nodoA;
 
 /// PROTOTIPADOS
+/// Lauti
 // Primera parte
+void insertarTextosBase();
 void inicIdDoc();
 int cantDatosArch();
 void agregaCaracterAPalabra(char*, char);
@@ -47,16 +49,44 @@ void leerArchivo(termino*, int*, char*);
 void escrituraDiccionario(termino*, int);
 void leer();
 
-// Julian
+/// Julian
+nodoA* crearNodoArbol(char*);
+nodoT* crearNodoOcurrencias(int, int);
+void insertarOcurrencia(nodoT**, nodoT*);
+void buscarEInsertar (nodoA**, char*, nodoT*);
+void generarArbolBusqueda(nodoA**);
 void mostrarArbol(nodoA*);
 
-// Tobi
+/// Tobias
 void mostrarOcurrencias (nodoT*);
-
+void buscarPalabraYMostrarOcurrencias (nodoA*, char*);
+int buscarIdDocEnOcurrencias (nodoT*, int);
+void buscarPalabraEnDosDocumentosYMostrarOcurrencias (nodoA*, char*, int, int);
+void mostrarOcurrenciasDeUnIdDoc (nodoT*, int);
+nodoT* retornarListaOcurrenciasDeUnaPalabra (nodoA*, char*);
+int buscarPalabraEnArbol (nodoA*, char*);
+void buscarPalabrasEnMismoDoc (nodoA*, char*, char*, int);
+int retornarCantPalabras (char*);
+char** retornarArregloDeStrings (char*, int);
+int buscarIdDocYPosEnOcurrencias (nodoT*, int, int);
+int buscarPalabraConIdDocYPos (nodoA*, char*, int, int);
+void liberarMatrizChar (char**, int);
+void leerFrase(char*);
+void buscarFrase (nodoA*, char*);
+nodoA* buscarTerminoMasFrecuente (nodoA*);
+void mostrarTerminoMasFrecuente (nodoA*);
+int Minimo (int, int);
+int Levenshtein(char*,char*);
+void sugerirSimilares (nodoA*, char*);
+void llenarArregloDeTerminosEIncrementarIdDoc (termino*, int*);
+void recorrerArregloTerminosYAgregarAArbol(nodoA**, termino*, int);
+void agregarTexto (nodoA**);
+void mostrarOpciones();
+void menu (nodoA**);
 
 /// FUNCIONES
 
-// DICCIONARIO - Lauti
+/// DICCIONARIO - Lauti
 
 /// ------------- Diccionario -------------
 /// Se tienen N documentos, donde se leerán todas las palabras de cada uno de ellos.
@@ -113,7 +143,7 @@ void leerArchivo(termino* terminos, int* validos, char* nomArch)
     FILE* puntArchIdDoc = fopen(idDocArch, "r+b");   // r+b
     FILE* puntArch = fopen(nomArch, "rb");
 
-    int flag = 0;   // Para saber si se leyó un caracter raro
+    int flag = 1;   // Para saber si se leyó un caracter raro
 
     int pos = 0, idDoc;
     char palabra[20], caracter;
@@ -231,18 +261,18 @@ void insertarTextosBase()
 
     termino* arreglo;
     int validos = 0;
-    arreglo = (termino*)malloc(sizeof(termino)*cantDatosArch(boca));
+    arreglo = (termino*)malloc(sizeof(termino)*cantDatosArch(texto1));
 
-    leerArchivo(arreglo, &validos, boca);
+    leerArchivo(arreglo, &validos, texto1);
     escrituraDiccionario(arreglo, validos);
 
     //mostrarArregloTerminos(arreglo, validos);
 
     free(arreglo);
 
-    arreglo = (termino*)malloc(sizeof(termino)*cantDatosArch(leng));
+    arreglo = (termino*)malloc(sizeof(termino)*cantDatosArch(texto2));
     validos = 0;
-    leerArchivo(arreglo, &validos, leng);
+    leerArchivo(arreglo, &validos, texto2);
     escrituraDiccionario(arreglo, validos);
 
     //mostrarArregloTerminos(arreglo, validos);
@@ -419,7 +449,7 @@ void buscarPalabraEnDosDocumentosYMostrarOcurrencias (nodoA* arbol, char* palabr
         {
             if (buscarIdDocEnOcurrencias(arbol->ocurrencias, docA) && buscarIdDocEnOcurrencias(arbol->ocurrencias, docB))
             {
-                printf("Se encontro %s en:\n", palabra);
+                printf("Se encontro '%s' en:\n", palabra);
 
                 nodoT* aux = arbol->ocurrencias;
 
@@ -432,6 +462,8 @@ void buscarPalabraEnDosDocumentosYMostrarOcurrencias (nodoA* arbol, char* palabr
                         printf("ID DOC: %i\n", aux->idDOC);
                         printf("POS: %i\n", aux->pos);
                     }
+
+                    aux = aux->sig;
                 }
 
                 printf("===================\n");
@@ -806,7 +838,7 @@ void llenarArregloDeTerminosEIncrementarIdDoc (termino* terminos, int* validos)
 
     if (fp)
     {
-        int pos = 0, idDoc, flag = 0;  // flag en 0 avisa que el último caracter leído fue una letra
+        int pos = 0, idDoc, flag = 1;  // flag en 0 avisa que el último caracter leído fue una letra
 
         fread(&idDoc, sizeof(int), 1, fp);
         idDoc++;
@@ -1116,11 +1148,11 @@ int main()
 {
     hidecursor(0); // oculta el cursor
 
- //   portada();
+    portada();
 
- //   pantallaDeCarga("INSERTANDO LOS TEXTOS BASE AL DICCIONARIO", 2);
+//    pantallaDeCarga("INSERTANDO LOS TEXTOS BASE AL DICCIONARIO", 2);
 
-    //insertarTextosBase();
+    //insertarTextosBase(); /// usar y comentar
 
   /*  printf("------------------ ARCHIVO DICCIONARIO ------------------\n");
 
@@ -1135,11 +1167,11 @@ int main()
 
     generarArbolBusqueda(&arbolBB);
 
-    //mostrarArbol(arbolBB);
+ /*   mostrarArbol(arbolBB);
 
-    //system("pause");
-    //system("cls");
-
+    system("pause");
+    system("cls");
+*/
     menu(&arbolBB);
 
     return 0;
