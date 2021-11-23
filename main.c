@@ -38,15 +38,15 @@ typedef struct nodoA
 } nodoA;
 
 /// PROTOTIPADOS
+
 /// Lauti
-// Primera parte
-void insertarTextosBase();
-void inicIdDoc();
 int cantDatosArch();
+void inicIdDoc();
 void agregaCaracterAPalabra(char*, char);
 void leerArchivo(termino*, int*, char*);
-// Segunda parte
 void escrituraDiccionario(termino*, int);
+void mostrarArregloTerminos (termino*, int);
+void insertarTextosBase();
 void leer();
 
 /// Julian
@@ -129,7 +129,7 @@ void agregaCaracterAPalabra(char* palabras, char caracter)
 {
     int i = 0;
 
-    while(palabras[i] != '\0')
+    while(palabras[i] != '\0')  // Mientras haya una letra en el arreglo
     {
         i++;
     }
@@ -153,7 +153,7 @@ void leerArchivo(termino* terminos, int* validos, char* nomArch)
     if(puntArchIdDoc != NULL && puntArch != NULL)
     {
         fread(&idDoc, sizeof(int), 1, puntArchIdDoc);
-        idDoc++;
+        idDoc++;    // Por cada texto el id doc se incrementa
         fseek(puntArchIdDoc, -1*sizeof(int), SEEK_CUR);
         fwrite(&idDoc, sizeof(int), 1, puntArchIdDoc);
 
@@ -165,7 +165,7 @@ void leerArchivo(termino* terminos, int* validos, char* nomArch)
                 flag = 0;
                 agregaCaracterAPalabra(palabra, caracter);
             }
-            else
+            else    // Encontro un caracter raro, o un espacio y termina ahi la palabra
             {
                 if(flag == 0)
                 {
@@ -222,39 +222,6 @@ void escrituraDiccionario(termino* terminos, int validos)
     }
 }
 
-void leer()
-{
-    FILE* puntArch = fopen("diccionario.bin", "rb");
-
-    termino palabra;
-
-    if(puntArch != NULL)
-    {
-        while(fread(&palabra, sizeof(termino), 1, puntArch) > 0)
-        {
-            printf("____________________________\n");
-            printf("Palabra: %s \n", palabra.palabra);
-            printf("Id: %i \n", palabra.idDOC);
-            printf("Posicion: %i \n", palabra.pos);
-            printf("____________________________\n");
-        }
-        fclose(puntArch);
-    }
-}
-
-void mostrarArregloTerminos (termino* arreglo, int validos)
-{
-    printf("------------------ ARREGLO DINAMICO DE TERMINOS ------------------\n");
-    for (int i = 0; i < validos; i++)
-    {
-        printf("____________________________\n");
-        printf("Palabra: %s \n", arreglo[i].palabra);
-        printf("Id: %i \n", arreglo[i].idDOC);
-        printf("Posicion: %i \n", arreglo[i].pos);
-        printf("____________________________\n");
-    }
-}
-
 void insertarTextosBase()
 {
     inicIdDoc();
@@ -280,6 +247,39 @@ void insertarTextosBase()
     free(arreglo);
 }
 
+void leer()
+{
+    FILE* puntArch = fopen("diccionario.bin", "rb");
+
+    termino palabra;
+
+    if(puntArch != NULL)
+    {
+        while(fread(&palabra, sizeof(termino), 1, puntArch) > 0)
+        {
+            printf("____________________________\n");
+            printf("Palabra: %s \n", palabra.palabra);
+            printf("Id: %i \n", palabra.idDOC);
+            printf("Posicion: %i \n", palabra.pos);
+            printf("____________________________\n");
+        }
+        fclose(puntArch);
+    }
+}
+
+void mostrarArregloTerminos (termino* arreglo, int validos)
+{
+    printf("------------------ ARREGLO DINAMICO DE TERMINOS ------------------\n");
+
+    for (int i = 0; i < validos; i++)
+    {
+        printf("____________________________\n");
+        printf("Palabra: %s \n", arreglo[i].palabra);
+        printf("Id: %i \n", arreglo[i].idDOC);
+        printf("Posicion: %i \n", arreglo[i].pos);
+        printf("____________________________\n");
+    }
+}
 
 /// MOTOR DE BUSQUEDA - Julian
 
@@ -1148,31 +1148,31 @@ int main()
 {
     hidecursor(0); // oculta el cursor
 
-    portada();
+//    portada();
 
-//    pantallaDeCarga("INSERTANDO LOS TEXTOS BASE AL DICCIONARIO", 2);
+    pantallaDeCarga("INSERTANDO LOS TEXTOS BASE AL DICCIONARIO", 2);
 
-    //insertarTextosBase(); /// usar y comentar
+//    insertarTextosBase(); /// usar y comentar
 
-  /*  printf("------------------ ARCHIVO DICCIONARIO ------------------\n");
+    printf("------------------ ARCHIVO DICCIONARIO ------------------\n");
 
     leer();
     system("pause");
     system("cls");
-*/
+
 
   //  pantallaDeCarga("GENERANDO ARBOL DE BUSQUEDA CON TERMINOS", 3);
 
-    nodoA* arbolBB = NULL;
+  //  nodoA* arbolBB = NULL;
 
-    generarArbolBusqueda(&arbolBB);
+ //   generarArbolBusqueda(&arbolBB);
 
  /*   mostrarArbol(arbolBB);
 
     system("pause");
     system("cls");
 */
-    menu(&arbolBB);
+//  menu(&arbolBB);
 
     return 0;
 }
